@@ -254,7 +254,7 @@
     function sendToGas(payload, successCallback) {
       document.getElementById('modal-loading').style.display = 'flex';
       
-      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === "ここにデプロイしたGASのURLを貼り付けます") {
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbx9OzxRCPbHlBoX4E_2Om1fah-dMqq1NkbamJamMAby0zvhqFG_ut5bTNt6E4QXklkWqQ/exec") {
         document.getElementById('modal-loading').style.display = 'none';
         alert("GASのURLが設定されていません。コード先頭の GAS_WEB_APP_URL を確認してください。");
         return;
