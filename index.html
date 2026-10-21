@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>文化祭レジシステム</title>
   <style>
-    /* 共通リセット＆ベーススタイル */
     body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; user-select: none; }
     .view { display: none; padding: 20px; max-width: 500px; margin: 0 auto; box-sizing: border-box; min-height: 100vh; flex-direction: column; }
     .active-view { display: flex; }
@@ -18,321 +17,156 @@
     .btn-secondary { background-color: #6c757d; color: white; }
     .btn-success { background-color: #28a745; color: white; }
     .btn-disabled { background-color: #ccc; color: #666; pointer-events: none; }
-    
-    /* 入力フォーム群 */
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-    select, input[type="text"], input[type="number"], input[type="time"] {
-      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box;
-    }
+    select, input[type="text"], input[type="number"], input[type="time"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
     input[readonly] { background-color: #e9ecef; }
-
-    /* ヘッダー情報（待機画面等） */
     .app-header { background-color: #343a40; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
     .app-header .clock { font-size: 20px; font-weight: bold; }
-
-    /* 独自テンキー */
     .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
     .numpad button { font-size: 24px; padding: 20px; background-color: #fff; border: 1px solid #ddd; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .numpad .btn-clear { background-color: #ffc107; color: #333; }
     .numpad .btn-enter { background-color: #28a745; color: white; grid-column: span 3; }
-
-    /* スライダー（キャンセル機構） */
     .slider-container { width: 100%; height: 50px; background-color: #f8d7da; border-radius: 25px; position: relative; overflow: hidden; margin-top: 20px; border: 1px solid #dc3545; }
     .slider-text { position: absolute; width: 100%; line-height: 50px; text-align: center; color: #721c24; font-weight: bold; z-index: 1; pointer-events: none; }
     .slider-thumb { width: 50px; height: 50px; background-color: #dc3545; border-radius: 50%; position: absolute; left: 0; top: 0; z-index: 2; display: flex; justify-content: center; align-items: center; color: white; cursor: grab; }
     .slider-thumb:active { cursor: grabbing; }
-
-    /* モーダル */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
     .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
     .modal-content h3 { margin-top: 0; }
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
     .modal-actions button { flex: 1; }
-
-    /* スライドインUI */
     .slide-up-panel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); transition: bottom 0.3s ease; padding: 20px; box-sizing: border-box; border-radius: 20px 20px 0 0; z-index: 100; max-height: 80vh; overflow-y: auto; }
     .slide-up-panel.show { bottom: 0; }
-
-    /* カートリスト（フリマ用） */
     .cart-list { list-style: none; padding: 0; margin: 0 0 15px 0; }
     .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
     .cart-total { font-size: 24px; font-weight: bold; text-align: right; color: #dc3545; margin-bottom: 15px; }
-
-    /* フルスクリーン金額表示 */
     .huge-amount { font-size: 48px; font-weight: bold; text-align: center; margin: 20px 0; color: #333; }
   </style>
 </head>
 <body>
 
-  <!-- 【1】初期設定画面 -->
+  <!-- 画面群（初期設定・確認・待機・パネル・預かり金・おつり・各種モーダル）は変更なし -->
   <div id="view-setup" class="view active-view">
     <h2>⚙️ 初期設定</h2>
-    <div class="form-group">
-      <label>企画カテゴリ</label>
+    <div class="form-group"><label>企画カテゴリ</label>
       <select id="setup-category" onchange="toggleSetupFields()">
-        <option value="">選択してください</option>
-        <option value="フリーマーケット">フリーマーケット</option>
-        <option value="エアホッケー">エアホッケー</option>
-        <option value="モグラ叩き">モグラ叩き</option>
-        <option value="フリースロー">フリースロー</option>
-        <option value="その他">その他（新規入力）</option>
+        <option value="">選択してください</option><option value="フリーマーケット">フリーマーケット</option><option value="エアホッケー">エアホッケー</option><option value="モグラ叩き">モグラ叩き</option><option value="フリースロー">フリースロー</option><option value="その他">その他（新規入力）</option>
       </select>
       <input type="text" id="setup-category-custom" placeholder="カテゴリを入力" style="display:none; margin-top:10px;">
     </div>
-    <div class="form-group">
-      <label>商品単価（¥）</label>
-      <input type="number" id="setup-price" placeholder="例: 300">
-    </div>
-    <div class="form-group">
-      <label>会計体制</label>
-      <select id="setup-system" onchange="toggleSetupFields()">
-        <option value="1">1人体制</option>
-        <option value="2">2人体制</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>担当者1（学籍番号・氏名）</label>
-      <input type="text" id="setup-staff1" placeholder="例: 2400 山田太郎">
-    </div>
-    <div id="setup-staff2-group" class="form-group" style="display:none;">
-      <label>担当者2（学籍番号・氏名）</label>
-      <input type="text" id="setup-staff2" placeholder="例: 2401 鈴木花子">
-      <label style="margin-top:10px;">交代予定時刻</label>
-      <input type="time" id="setup-time">
-    </div>
+    <div class="form-group"><label>商品単価（¥）</label><input type="number" id="setup-price" placeholder="例: 300"></div>
+    <div class="form-group"><label>会計体制</label><select id="setup-system" onchange="toggleSetupFields()"><option value="1">1人体制</option><option value="2">2人体制</option></select></div>
+    <div class="form-group"><label>担当者1（学籍番号・氏名）</label><input type="text" id="setup-staff1" placeholder="例: 2400 山田太郎"></div>
+    <div id="setup-staff2-group" class="form-group" style="display:none;"><label>担当者2（学籍番号・氏名）</label><input type="text" id="setup-staff2" placeholder="例: 2401 鈴木花子"><label style="margin-top:10px;">交代予定時刻</label><input type="time" id="setup-time"></div>
     <button class="btn-primary" style="margin-top:20px;" onclick="goToConfirm()">確認へ進む</button>
   </div>
 
-  <!-- 【2】確認画面 -->
   <div id="view-confirm" class="view">
     <h2>📋 設定確認</h2>
     <div style="background:#fff; padding:20px; border-radius:8px; margin-bottom:20px; border:1px solid #ddd;">
-      <p><b>企画名：</b> <span id="conf-category"></span></p>
-      <p id="conf-price-wrap"><b>単価：</b> ¥<span id="conf-price"></span></p>
-      <p><b>体制：</b> <span id="conf-system"></span></p>
-      <p><b>担当者：</b><br><span id="conf-staff"></span></p>
-      <p id="conf-time-wrap"><b>交代予定：</b> <span id="conf-time"></span></p>
+      <p>「企画名」 <span id="conf-category"></span></p><p id="conf-price-wrap">「単価」 ¥<span id="conf-price"></span></p><p>「体制」 <span id="conf-system"></span></p><p>「担当者」<br><span id="conf-staff"></span></p><p id="conf-time-wrap">「交代予定」 <span id="conf-time"></span></p>
     </div>
-    <div style="display:flex; gap:10px;">
-      <button class="btn-secondary" style="flex:1;" onclick="switchView('view-setup')">内容修正</button>
-      <button class="btn-primary" style="flex:1;" onclick="startApp()">開始</button>
-    </div>
+    <div style="display:flex; gap:10px;"><button class="btn-secondary" style="flex:1;" onclick="switchView('view-setup')">内容修正</button><button class="btn-primary" style="flex:1;" onclick="startApp()">開始</button></div>
   </div>
 
-  <!-- 【3】待機画面 -->
   <div id="view-standby" class="view">
-    <div class="app-header">
-      <div>担当: <span id="header-staff"></span></div>
-      <div class="clock" id="header-clock">00:00</div>
-    </div>
+    <div class="app-header"><div>担当: <span id="header-staff"></span></div><div class="clock" id="header-clock">00:00</div></div>
     <button id="btn-shift-change" class="btn-secondary" style="display:none; margin-bottom:20px;" onclick="showShiftChangeModal()">交代する</button>
-    
-    <div style="flex:1; display:flex; justify-content:center; align-items:center;">
-      <button class="btn-primary" style="width:200px; height:200px; border-radius:50%; font-size:32px; box-shadow: 0 10px 20px rgba(0,123,255,0.3);" onclick="openTransactionPanel()">取引開始</button>
-    </div>
+    <div style="flex:1; display:flex; justify-content:center; align-items:center;"><button class="btn-primary" style="width:200px; height:200px; border-radius:50%; font-size:32px; box-shadow: 0 10px 20px rgba(0,123,255,0.3);" onclick="openTransactionPanel()">取引開始</button></div>
   </div>
 
-  <!-- スライドイン：取引登録パネル -->
   <div id="panel-transaction" class="slide-up-panel">
     <h3>🛒 取引登録</h3>
-    
-    <!-- フリマ用UI -->
     <div id="ui-flea" style="display:none;">
-      <div class="form-group">
-        <label>カテゴリー</label>
-        <select id="flea-item-cat">
-          <option value="レジン">レジン</option>
-          <option value="カード">カード</option>
-          <option value="フィギュア">フィギュア</option>
-          <option value="ぬいぐるみ">ぬいぐるみ</option>
-          <option value="お菓子">お菓子</option>
-          <option value="その他">その他</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>金額（¥）</label>
-        <input type="number" id="flea-item-price" placeholder="金額を入力">
-      </div>
+      <div class="form-group"><label>カテゴリー</label><select id="flea-item-cat"><option value="レジン">レジン</option><option value="カード">カード</option><option value="フィギュア">フィギュア</option><option value="ぬいぐるみ">ぬいぐるみ</option><option value="お菓子">お菓子</option><option value="その他">その他</option></select></div>
+      <div class="form-group"><label>金額（¥）</label><input type="number" id="flea-item-price" placeholder="金額を入力"></div>
       <button class="btn-secondary" style="width:100%; margin-bottom:15px;" onclick="addCartItem()">カートに追加 ＋</button>
       <ul class="cart-list" id="cart-list"></ul>
     </div>
-
-    <!-- 通常企画用UI -->
     <div id="ui-normal" style="display:none;">
-      <div style="text-align:center; font-size:24px; margin-bottom:20px;">
-        単価: ¥<span id="normal-unit-price"></span>
-      </div>
+      <div style="text-align:center; font-size:24px; margin-bottom:20px;">単価: ¥<span id="normal-unit-price"></span></div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <button class="btn-secondary" style="width:60px; height:60px; font-size:30px;" onclick="changeQty(-1)">-</button>
-        <span id="normal-qty" style="font-size:40px; font-weight:bold;">1</span>
-        <button class="btn-secondary" style="width:60px; height:60px; font-size:30px;" onclick="changeQty(1)">+</button>
+        <button class="btn-secondary" style="width:60px; height:60px; font-size:30px;" onclick="changeQty(-1)">-</button><span id="normal-qty" style="font-size:40px; font-weight:bold;">1</span><button class="btn-secondary" style="width:60px; height:60px; font-size:30px;" onclick="changeQty(1)">+</button>
       </div>
     </div>
-
     <div class="cart-total">請求額: ¥<span id="display-total">0</span>-</div>
     <p style="text-align:center; color:#555; font-size:14px;">お客様に金額をお伝えください</p>
-    
     <button id="btn-go-payment" class="btn-primary btn-disabled" style="width:100%; margin-bottom:15px;" onclick="goToPayment()">会計へすすむ</button>
     <button class="btn-danger" style="width:100%;" onclick="showCancelModal()">取引中止</button>
   </div>
 
-  <!-- 【4】預かり金額入力画面 -->
   <div id="view-payment" class="view">
     <h2>💴 預かり金額入力</h2>
     <div class="cart-total">請求額: ¥<span id="pay-req-amount">0</span>-</div>
-    
     <input type="text" id="input-received" readonly placeholder="¥ 0 -" style="font-size:32px; text-align:center; padding:20px; border:2px solid #007bff; background:#fff; color:#333;">
-    
     <div class="numpad">
-      <button onclick="numpad('7')">7</button>
-      <button onclick="numpad('8')">8</button>
-      <button onclick="numpad('9')">9</button>
-      <button onclick="numpad('4')">4</button>
-      <button onclick="numpad('5')">5</button>
-      <button onclick="numpad('6')">6</button>
-      <button onclick="numpad('1')">1</button>
-      <button onclick="numpad('2')">2</button>
-      <button onclick="numpad('3')">3</button>
-      <button onclick="numpad('0')">0</button>
-      <button onclick="numpad('00')">00</button>
-      <button class="btn-clear" onclick="numpad('C')">C</button>
+      <button onclick="numpad('7')">7</button><button onclick="numpad('8')">8</button><button onclick="numpad('9')">9</button>
+      <button onclick="numpad('4')">4</button><button onclick="numpad('5')">5</button><button onclick="numpad('6')">6</button>
+      <button onclick="numpad('1')">1</button><button onclick="numpad('2')">2</button><button onclick="numpad('3')">3</button>
+      <button onclick="numpad('0')">0</button><button onclick="numpad('00')">00</button><button class="btn-clear" onclick="numpad('C')">C</button>
       <button id="btn-numpad-enter" class="btn-enter btn-disabled" onclick="calcChange()">確定</button>
     </div>
-    
-    <div style="margin-top:30px;">
-      <button class="btn-danger" style="width:100%;" onclick="showCancelModal()">取引中止</button>
-    </div>
+    <div style="margin-top:30px;"><button class="btn-danger" style="width:100%;" onclick="showCancelModal()">取引中止</button></div>
   </div>
 
-  <!-- 【5】おつり表示・完了画面 -->
   <div id="view-change" class="view">
-    <h2>おつり</h2>
-    <div id="display-change" class="huge-amount">¥ 0 -</div>
+    <h2>おつり</h2><div id="display-change" class="huge-amount">¥ 0 -</div>
     <p style="text-align:center; color:#e0245e; font-size:18px; font-weight:bold; margin-bottom:40px;">おつりをお渡しください</p>
     <button class="btn-success" style="width:100%; padding:20px; font-size:24px;" onclick="completeTransaction()">取引完了</button>
   </div>
 
-  <!-- モーダル群 -->
-  <!-- キャンセルモーダル（スライダー付き） -->
   <div id="modal-cancel" class="modal-overlay">
-    <div class="modal-content">
-      <h3 style="color:#dc3545;">取引を中止しますか？</h3>
-      <p>現在進行中の取引はキャンセルされます。</p>
-      <div class="slider-container" id="cancel-slider-box">
-        <div class="slider-text">右端までスライドで中止</div>
-        <div class="slider-thumb" id="cancel-thumb">➡</div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeModal('modal-cancel')">戻る</button>
-      </div>
+    <div class="modal-content"><h3 style="color:#dc3545;">取引を中止しますか？</h3><p>現在進行中の取引はキャンセルされます。</p>
+      <div class="slider-container" id="cancel-slider-box"><div class="slider-text">右端までスライドで中止</div><div class="slider-thumb" id="cancel-thumb">➡</div></div>
+      <div class="modal-actions"><button class="btn-secondary" onclick="closeModal('modal-cancel')">戻る</button></div>
     </div>
   </div>
 
-  <!-- 交代通知モーダル -->
   <div id="modal-shift-alert" class="modal-overlay">
-    <div class="modal-content">
-      <h3>⏰ そろそろ交代の時間です</h3>
-      <p id="shift-alert-msg"></p>
-      <div class="modal-actions">
-        <button class="btn-primary" onclick="closeModal('modal-shift-alert')">確認</button>
-      </div>
-    </div>
+    <div class="modal-content"><h3>⏰ そろそろ交代の時間です</h3><p id="shift-alert-msg"></p><div class="modal-actions"><button class="btn-primary" onclick="closeModal('modal-shift-alert')">確認</button></div></div>
   </div>
 
-  <!-- 交代実行モーダル -->
   <div id="modal-shift-confirm" class="modal-overlay">
-    <div class="modal-content">
-      <h3>担当を交代しますか？</h3>
-      <p id="shift-confirm-msg"></p>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeModal('modal-shift-confirm')">やめる</button>
-        <button class="btn-primary" onclick="executeShiftChange()">交代する</button>
-      </div>
-    </div>
+    <div class="modal-content"><h3>担当を交代しますか？</h3><p id="shift-confirm-msg"></p><div class="modal-actions"><button class="btn-secondary" onclick="closeModal('modal-shift-confirm')">やめる</button><button class="btn-primary" onclick="executeShiftChange()">交代する</button></div></div>
   </div>
 
-  <!-- 通信中オーバーレイ -->
-  <div id="modal-loading" class="modal-overlay" style="z-index:9999;">
-    <div class="modal-content" style="background:transparent; box-shadow:none;">
-      <h2 style="color:white;">通信中...</h2>
-    </div>
-  </div>
+  <div id="modal-loading" class="modal-overlay" style="z-index:9999;"><div class="modal-content" style="background:transparent; box-shadow:none;"><h2 style="color:white;">通信中...</h2></div></div>
 
   <script>
-    /* ========== 状態管理 (State) ========== */
-    let appState = {
-      category: '',
-      price: 0,
-      system: '1',
-      staff1: '',
-      staff2: '',
-      shiftTime: '',
-      activeStaff: '',
-      isFlea: false
-    };
+    // 【重要】ここにデプロイしたGASのWebアプリURLを貼り付けてください
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxt4i4AT3xtIi-KBThp1P7eF9XJgAcG4KZVmBTDEp8PLObfmSi2RW_98DDvUCDtYgHGGA/exec";
 
-    let txState = {
-      cart: [],
-      qty: 1,
-      totalAmount: 0,
-      receivedAmount: 0
-    };
+    let appState = { category: '', price: 0, system: '1', staff1: '', staff2: '', shiftTime: '', activeStaff: '', isFlea: false };
+    let txState = { cart: [], qty: 1, totalAmount: 0, receivedAmount: 0 };
 
-    /* ========== 初期化・時計処理 ========== */
     window.onload = function() {
-      // ローカルストレージ復帰チェック
       const saved = localStorage.getItem('bunkasai_appState');
-      if (saved) {
-        appState = JSON.parse(saved);
-        restoreStandby();
-      }
+      if (saved) { appState = JSON.parse(saved); restoreStandby(); }
       setInterval(updateClock, 1000);
-      setInterval(checkShiftTime, 60000); // 1分ごとに交代時間チェック
+      setInterval(checkShiftTime, 60000);
       initSlider();
     };
 
     function updateClock() {
       const now = new Date();
-      document.getElementById('header-clock').innerText = 
-        now.getHours().toString().padStart(2, '0') + ':' + 
-        now.getMinutes().toString().padStart(2, '0');
+      document.getElementById('header-clock').innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
     }
 
-    /* ========== 画面切り替え ========== */
     function switchView(viewId) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
       document.getElementById(viewId).classList.add('active-view');
       document.getElementById('panel-transaction').classList.remove('show');
     }
 
-    function closeModal(modalId) {
-      document.getElementById(modalId).style.display = 'none';
-    }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
-    /* ========== 【1】初期設定ロジック ========== */
     function toggleSetupFields() {
       const cat = document.getElementById('setup-category').value;
-      const customCat = document.getElementById('setup-category-custom');
+      document.getElementById('setup-category-custom').style.display = (cat === 'その他') ? 'block' : 'none';
       const priceInput = document.getElementById('setup-price');
-      const sys = document.getElementById('setup-system').value;
-      const staff2Group = document.getElementById('setup-staff2-group');
-
-      // その他入力の制御
-      customCat.style.display = (cat === 'その他') ? 'block' : 'none';
-
-      // フリマの場合の単価ロック
-      if (cat === 'フリーマーケット') {
-        priceInput.value = '';
-        priceInput.setAttribute('readonly', 'true');
-        priceInput.style.backgroundColor = '#e9ecef';
-      } else {
-        priceInput.removeAttribute('readonly');
-        priceInput.style.backgroundColor = '#fff';
-      }
-
-      // 2人体制の制御
-      staff2Group.style.display = (sys === '2') ? 'block' : 'none';
+      if (cat === 'フリーマーケット') { priceInput.value = ''; priceInput.setAttribute('readonly', 'true'); priceInput.style.backgroundColor = '#e9ecef'; } else { priceInput.removeAttribute('readonly'); priceInput.style.backgroundColor = '#fff'; }
+      document.getElementById('setup-staff2-group').style.display = (document.getElementById('setup-system').value === '2') ? 'block' : 'none';
     }
 
     function goToConfirm() {
@@ -347,17 +181,7 @@
       if (!cat || !st1) { alert("必須項目を入力してください"); return; }
       if (cat !== 'フリーマーケット' && !price) { alert("単価を入力してください"); return; }
 
-      appState = {
-        category: cat,
-        price: Number(price),
-        system: sys,
-        staff1: st1,
-        staff2: sys === '2' ? st2 : '',
-        shiftTime: sys === '2' ? time : '',
-        activeStaff: st1,
-        isFlea: (cat === 'フリーマーケット')
-      };
-
+      appState = { category: cat, price: Number(price), system: sys, staff1: st1, staff2: sys === '2' ? st2 : '', shiftTime: sys === '2' ? time : '', activeStaff: st1, isFlea: (cat === 'フリーマーケット') };
       document.getElementById('conf-category').innerText = appState.category;
       document.getElementById('conf-price').innerText = appState.price;
       document.getElementById('conf-price-wrap').style.display = appState.isFlea ? 'none' : 'block';
@@ -365,59 +189,36 @@
       document.getElementById('conf-staff').innerHTML = appState.staff1 + (appState.staff2 ? "<br>" + appState.staff2 : "");
       document.getElementById('conf-time').innerText = appState.shiftTime;
       document.getElementById('conf-time-wrap').style.display = appState.system === '2' ? 'block' : 'none';
-
       switchView('view-confirm');
     }
 
     function startApp() {
       localStorage.setItem('bunkasai_appState', JSON.stringify(appState));
-      
-      // GAS側へステータス更新を送信
-      sendToGas({
-        action: 'updateStaffStatus',
-        projectName: appState.category,
-        systemType: appState.system + '人体制',
-        staff1: appState.staff1,
-        staff2: appState.staff2,
-        shiftTime: appState.shiftTime,
-        activeStaff: appState.activeStaff,
-        timestamp: new Date().toLocaleString()
-      });
-
+      sendToGas({ action: 'updateStaffStatus', projectName: appState.category, systemType: appState.system + '人体制', staff1: appState.staff1, staff2: appState.staff2, shiftTime: appState.shiftTime, activeStaff: appState.activeStaff, timestamp: new Date().toLocaleString() });
       restoreStandby();
     }
 
     function restoreStandby() {
       document.getElementById('header-staff').innerText = appState.activeStaff;
-      if (appState.system === '2' && appState.staff2) {
-        document.getElementById('btn-shift-change').style.display = 'block';
-      }
+      if (appState.system === '2' && appState.staff2) document.getElementById('btn-shift-change').style.display = 'block';
       switchView('view-standby');
     }
 
-    /* ========== 交代ロジック ========== */
     let alertShown = false;
     function checkShiftTime() {
       if (appState.system !== '2' || !appState.shiftTime || alertShown) return;
-      
-      const now = new Date();
-      const [sh, sm] = appState.shiftTime.split(':').map(Number);
-      const shiftDate = new Date();
-      shiftDate.setHours(sh, sm, 0, 0);
-      
-      // 30分前（1800000ミリ秒）を検知
+      const now = new Date(); const [sh, sm] = appState.shiftTime.split(':').map(Number);
+      const shiftDate = new Date(); shiftDate.setHours(sh, sm, 0, 0);
       const diff = shiftDate.getTime() - now.getTime();
       if (diff > 0 && diff <= 1800000) {
-        const nextStaff = (appState.activeStaff === appState.staff1) ? appState.staff2 : appState.staff1;
-        document.getElementById('shift-alert-msg').innerText = `「${nextStaff}」さんに声をかけましょう。`;
+        document.getElementById('shift-alert-msg').innerText = `「${appState.activeStaff === appState.staff1 ? appState.staff2 : appState.staff1}」さんに声をかけましょう。`;
         document.getElementById('modal-shift-alert').style.display = 'flex';
         alertShown = true;
       }
     }
 
     function showShiftChangeModal() {
-      const nextStaff = (appState.activeStaff === appState.staff1) ? appState.staff2 : appState.staff1;
-      document.getElementById('shift-confirm-msg').innerText = `会計担当を「${nextStaff}」さんと交代します。よろしいですか？`;
+      document.getElementById('shift-confirm-msg').innerText = `会計担当を「${appState.activeStaff === appState.staff1 ? appState.staff2 : appState.staff1}」さんと交代します。よろしいですか？`;
       document.getElementById('modal-shift-confirm').style.display = 'flex';
     }
 
@@ -425,264 +226,81 @@
       const nextStaff = (appState.activeStaff === appState.staff1) ? appState.staff2 : appState.staff1;
       appState.activeStaff = nextStaff;
       localStorage.setItem('bunkasai_appState', JSON.stringify(appState));
-      
-      sendToGas({
-        action: 'updateStaffStatus',
-        projectName: appState.category,
-        systemType: appState.system + '人体制',
-        staff1: appState.staff1,
-        staff2: appState.staff2,
-        shiftTime: appState.shiftTime,
-        activeStaff: appState.activeStaff,
-        timestamp: new Date().toLocaleString()
-      });
-
+      sendToGas({ action: 'updateStaffStatus', projectName: appState.category, systemType: appState.system + '人体制', staff1: appState.staff1, staff2: appState.staff2, shiftTime: appState.shiftTime, activeStaff: appState.activeStaff, timestamp: new Date().toLocaleString() });
       closeModal('modal-shift-confirm');
       alert(`担当を「${nextStaff}」さんに変更しました。端末をお渡しください。お疲れ様でした！`);
       restoreStandby();
     }
 
-    /* ========== 取引パネルロジック ========== */
     function openTransactionPanel() {
       txState = { cart: [], qty: 1, totalAmount: 0, receivedAmount: 0 };
-      
-      if (appState.isFlea) {
-        document.getElementById('ui-flea').style.display = 'block';
-        document.getElementById('ui-normal').style.display = 'none';
-        updateCartDisplay();
-      } else {
-        document.getElementById('ui-flea').style.display = 'none';
-        document.getElementById('ui-normal').style.display = 'block';
-        document.getElementById('normal-unit-price').innerText = appState.price;
-        updateNormalDisplay();
-      }
-      
+      if (appState.isFlea) { document.getElementById('ui-flea').style.display = 'block'; document.getElementById('ui-normal').style.display = 'none'; updateCartDisplay(); } else { document.getElementById('ui-flea').style.display = 'none'; document.getElementById('ui-normal').style.display = 'block'; document.getElementById('normal-unit-price').innerText = appState.price; updateNormalDisplay(); }
       document.getElementById('panel-transaction').classList.add('show');
     }
 
-    function changeQty(diff) {
-      if (txState.qty + diff >= 1) {
-        txState.qty += diff;
-        updateNormalDisplay();
-      }
-    }
+    function changeQty(diff) { if (txState.qty + diff >= 1) { txState.qty += diff; updateNormalDisplay(); } }
+    function updateNormalDisplay() { document.getElementById('normal-qty').innerText = txState.qty; txState.totalAmount = txState.qty * appState.price; document.getElementById('display-total').innerText = txState.totalAmount; checkPaymentReady(); }
+    function addCartItem() { const cat = document.getElementById('flea-item-cat').value; const price = Number(document.getElementById('flea-item-price').value); if (!price || price <= 0) return; txState.cart.push({ name: cat, price: price }); document.getElementById('flea-item-price').value = ''; updateCartDisplay(); }
+    function updateCartDisplay() { const ul = document.getElementById('cart-list'); ul.innerHTML = ''; txState.totalAmount = 0; txState.cart.forEach(item => { txState.totalAmount += item.price; const li = document.createElement('li'); li.className = 'cart-item'; li.innerHTML = `<span>${item.name}</span><span>¥${item.price}</span>`; ul.appendChild(li); }); document.getElementById('display-total').innerText = txState.totalAmount; checkPaymentReady(); }
+    function checkPaymentReady() { const btn = document.getElementById('btn-go-payment'); if (txState.totalAmount > 0) btn.classList.remove('btn-disabled'); else btn.classList.add('btn-disabled'); }
 
-    function updateNormalDisplay() {
-      document.getElementById('normal-qty').innerText = txState.qty;
-      txState.totalAmount = txState.qty * appState.price;
-      document.getElementById('display-total').innerText = txState.totalAmount;
-      checkPaymentReady();
-    }
-
-    function addCartItem() {
-      const cat = document.getElementById('flea-item-cat').value;
-      const price = Number(document.getElementById('flea-item-price').value);
-      if (!price || price <= 0) return;
-      
-      txState.cart.push({ name: cat, price: price });
-      document.getElementById('flea-item-price').value = '';
-      updateCartDisplay();
-    }
-
-    function updateCartDisplay() {
-      const ul = document.getElementById('cart-list');
-      ul.innerHTML = '';
-      txState.totalAmount = 0;
-      
-      txState.cart.forEach((item, index) => {
-        txState.totalAmount += item.price;
-        const li = document.createElement('li');
-        li.className = 'cart-item';
-        li.innerHTML = `<span>${item.name}</span><span>¥${item.price}</span>`;
-        ul.appendChild(li);
-      });
-      
-      document.getElementById('display-total').innerText = txState.totalAmount;
-      checkPaymentReady();
-    }
-
-    function checkPaymentReady() {
-      const btn = document.getElementById('btn-go-payment');
-      if (txState.totalAmount > 0) {
-        btn.classList.remove('btn-disabled');
-      } else {
-        btn.classList.add('btn-disabled');
-      }
-    }
-
-    /* ========== 預かり金額・テンキーロジック ========== */
     let inputStr = "";
-    function goToPayment() {
-      document.getElementById('panel-transaction').classList.remove('show');
-      document.getElementById('pay-req-amount').innerText = txState.totalAmount;
-      inputStr = "";
-      updateReceivedDisplay();
-      switchView('view-payment');
-    }
+    function goToPayment() { document.getElementById('panel-transaction').classList.remove('show'); document.getElementById('pay-req-amount').innerText = txState.totalAmount; inputStr = ""; updateReceivedDisplay(); switchView('view-payment'); }
+    function numpad(val) { if (val === 'C') inputStr = inputStr.slice(0, -1); else { if (inputStr === "" && (val === "0" || val === "00")) return; inputStr += val; } updateReceivedDisplay(); }
+    function updateReceivedDisplay() { const amt = Number(inputStr); const display = document.getElementById('input-received'); display.value = inputStr === "" ? "" : `¥ ${amt} -`; const enterBtn = document.getElementById('btn-numpad-enter'); if (amt >= txState.totalAmount) enterBtn.classList.remove('btn-disabled'); else enterBtn.classList.add('btn-disabled'); }
+    function calcChange() { txState.receivedAmount = Number(inputStr); document.getElementById('display-change').innerText = `¥ ${txState.receivedAmount - txState.totalAmount} -`; switchView('view-change'); }
 
-    function numpad(val) {
-      if (val === 'C') {
-        inputStr = inputStr.slice(0, -1);
-      } else {
-        // 先頭の0は抑制
-        if (inputStr === "" && val === "0") return;
-        if (inputStr === "" && val === "00") return;
-        inputStr += val;
-      }
-      updateReceivedDisplay();
-    }
-
-    function updateReceivedDisplay() {
-      const amt = Number(inputStr);
-      const display = document.getElementById('input-received');
-      if (inputStr === "") {
-        display.value = "";
-      } else {
-        display.value = `¥ ${amt} -`;
-      }
-      
-      const enterBtn = document.getElementById('btn-numpad-enter');
-      if (amt >= txState.totalAmount) {
-        enterBtn.classList.remove('btn-disabled');
-      } else {
-        enterBtn.classList.add('btn-disabled');
-      }
-    }
-
-    function calcChange() {
-      txState.receivedAmount = Number(inputStr);
-      const change = txState.receivedAmount - txState.totalAmount;
-      document.getElementById('display-change').innerText = `¥ ${change} -`;
-      switchView('view-change');
-    }
-
-    /* ========== 通信・送信ロジック ========== */
-    // google.script.run が使える環境か判定し、安全に送信するラッパー
+    /* ========== 新しい Fetch API を用いた通信ロジック ========== */
     function sendToGas(payload, successCallback) {
       document.getElementById('modal-loading').style.display = 'flex';
       
-      if (typeof google !== 'undefined' && google.script) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            document.getElementById('modal-loading').style.display = 'none';
-            if(successCallback) successCallback(res);
-          })
-          .withFailureHandler(function(err) {
-            document.getElementById('modal-loading').style.display = 'none';
-            alert("通信エラーが発生しました: " + err);
-          })
-          .processClientRequest(JSON.stringify(payload));
-      } else {
-        // 開発・テスト用モック
-        setTimeout(() => {
-          document.getElementById('modal-loading').style.display = 'none';
-          console.log("MOCK SEND:", payload);
-          if(successCallback) successCallback();
-        }, 1000);
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === "ここにデプロイしたGASのURLを貼り付けます") {
+        document.getElementById('modal-loading').style.display = 'none';
+        alert("GASのURLが設定されていません。コード先頭の GAS_WEB_APP_URL を確認してください。");
+        return;
       }
+
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        // CORSプリフライトを回避するため、あえて text/plain で送信します
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(res => {
+        document.getElementById('modal-loading').style.display = 'none';
+        if (successCallback) successCallback(res);
+      })
+      .catch(err => {
+        document.getElementById('modal-loading').style.display = 'none';
+        alert("通信エラーが発生しました: " + err);
+      });
     }
 
     function completeTransaction() {
       let details = "-";
       let totalQty = appState.isFlea ? txState.cart.length : txState.qty;
-      
-      if (appState.isFlea) {
-        details = txState.cart.map(i => `${i.name}(¥${i.price})`).join(", ");
-      }
-
-      const payload = {
-        action: 'recordTransaction',
-        transactionId: 'TXN-' + new Date().getTime(),
-        timestamp: new Date().toLocaleString(),
-        projectName: appState.category,
-        totalQuantity: totalQty,
-        totalAmount: txState.totalAmount,
-        receivedAmount: txState.receivedAmount,
-        changeAmount: txState.receivedAmount - txState.totalAmount,
-        cashierName: appState.activeStaff,
-        itemDetails: details
-      };
-
-      sendToGas(payload, function() {
-        restoreStandby();
-      });
+      if (appState.isFlea) details = txState.cart.map(i => `${i.name}(¥${i.price})`).join(", ");
+      sendToGas({ action: 'recordTransaction', transactionId: 'TXN-' + new Date().getTime(), timestamp: new Date().toLocaleString(), projectName: appState.category, totalQuantity: totalQty, totalAmount: txState.totalAmount, receivedAmount: txState.receivedAmount, changeAmount: txState.receivedAmount - txState.totalAmount, cashierName: appState.activeStaff, itemDetails: details }, function() { restoreStandby(); });
     }
 
-    /* ========== キャンセルスライダーロジック ========== */
-    function showCancelModal() {
-      document.getElementById('modal-cancel').style.display = 'flex';
-      resetSlider();
-    }
-
-    function resetSlider() {
-      const thumb = document.getElementById('cancel-thumb');
-      thumb.style.left = '0px';
-    }
-
+    function showCancelModal() { document.getElementById('modal-cancel').style.display = 'flex'; document.getElementById('cancel-thumb').style.left = '0px'; }
     function initSlider() {
-      const box = document.getElementById('cancel-slider-box');
-      const thumb = document.getElementById('cancel-thumb');
-      let isDragging = false;
-      let startX = 0;
-      let maxLeft = box.offsetWidth - thumb.offsetWidth;
-
-      // タッチ＆マウス対応
-      function onStart(e) {
-        isDragging = true;
-        startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
-      }
-      
-      function onMove(e) {
-        if (!isDragging) return;
-        let currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
-        let diff = currentX - startX;
-        if (diff < 0) diff = 0;
-        if (diff > maxLeft) diff = maxLeft;
-        thumb.style.left = diff + 'px';
-      }
-
+      const box = document.getElementById('cancel-slider-box'), thumb = document.getElementById('cancel-thumb');
+      let isDragging = false, startX = 0, maxLeft = box.offsetWidth - thumb.offsetWidth;
+      function onStart(e) { isDragging = true; startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX; }
+      function onMove(e) { if (!isDragging) return; let currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX; let diff = currentX - startX; if (diff < 0) diff = 0; if (diff > maxLeft) diff = maxLeft; thumb.style.left = diff + 'px'; }
       function onEnd(e) {
-        if (!isDragging) return;
-        isDragging = false;
-        let currentLeft = parseInt(thumb.style.left || 0);
-        
-        if (currentLeft >= maxLeft * 0.95) {
-          // キャンセル成立
-          executeCancel();
-        } else {
-          // 失敗時は戻る
-          thumb.style.transition = 'left 0.2s';
-          thumb.style.left = '0px';
-          setTimeout(() => { thumb.style.transition = ''; }, 200);
-        }
+        if (!isDragging) return; isDragging = false;
+        if (parseInt(thumb.style.left || 0) >= maxLeft * 0.95) executeCancel();
+        else { thumb.style.transition = 'left 0.2s'; thumb.style.left = '0px'; setTimeout(() => { thumb.style.transition = ''; }, 200); }
       }
-
-      thumb.addEventListener('mousedown', onStart);
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onEnd);
-      
-      thumb.addEventListener('touchstart', onStart, {passive: false});
-      document.addEventListener('touchmove', onMove, {passive: false});
-      document.addEventListener('touchend', onEnd);
+      thumb.addEventListener('mousedown', onStart); document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
+      thumb.addEventListener('touchstart', onStart, {passive: false}); document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
     }
-
     function executeCancel() {
-      closeModal('modal-cancel');
-      document.getElementById('panel-transaction').classList.remove('show');
-      
-      const payload = {
-        action: 'recordCancellation',
-        transactionId: 'CANCEL-' + new Date().getTime(),
-        timestamp: new Date().toLocaleString(),
-        projectName: appState.category,
-        lastAmount: txState.totalAmount,
-        cashierName: appState.activeStaff,
-        reason: 'ユーザーによるスライド中止'
-      };
-
-      sendToGas(payload, function() {
-        restoreStandby();
-      });
+      closeModal('modal-cancel'); document.getElementById('panel-transaction').classList.remove('show');
+      sendToGas({ action: 'recordCancellation', transactionId: 'CANCEL-' + new Date().getTime(), timestamp: new Date().toLocaleString(), projectName: appState.category, lastAmount: txState.totalAmount, cashierName: appState.activeStaff, reason: 'ユーザーによるスライド中止' }, function() { restoreStandby(); });
     }
   </script>
 </body>
